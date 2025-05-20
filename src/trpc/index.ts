@@ -7,6 +7,7 @@ import Categories from "@/models/category";
 import Products from "@/models/product";
 import Orders from "@/models/order";
 import Sliders from "@/models/slider";
+import Comments from "@/models/comments";
 import mongoose from "mongoose";
 
 
@@ -383,8 +384,94 @@ getProductData: publicProcedure
 
 
 
+  addComment: publicProcedure
+  .input(
+    z.object({
+      productId: z.string(),
+      userName: z.string(),
+      text: z.string(),
+    })
+  )
+  .mutation(async ({ input }) => {
+    // Validate productId format?
+    if (!input.productId || !input.userName || !input.text) {
+      throw new TRPCError({ code: "BAD_REQUEST" });
+    }
+
+    const comment = new Comments({
+      productId: new mongoose.Types.ObjectId(input.productId),
+      userName: input.userName,
+      text: input.text,
+      createdAt: new Date(),
+    });
+
+    await comment.save();
+    return { success: true };
+  }),
+
+deleteComment: adminProcedure
+  .input(z.object({ id: z.string() }))
+  .mutation(async ({ ctx, input }) => {
+    if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+    const deleted = await Comments.findByIdAndDelete(input.id);
+    if (!deleted) throw new TRPCError({ code: "BAD_REQUEST" });
+
+    return { success: true };
+}),
+
+
+  getComments: publicProcedure
+  .input(z.object({ productId: z.string() }))
+  .query(async ({ input }) => {
+    if (!input.productId) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Product ID required" });
+    }
+
+    const comments = await Comments.find({ 
+      productId: new mongoose.Types.ObjectId(input.productId) 
+    })
+    .sort({ createdAt: -1 }); // newest first
+
+    return comments;
+  }),
+
+
+  
+getRecentComments: publicProcedure.query(async () => {
+  const recentComments = await Comments.find()
+    .sort({ createdAt: -1 }) // newest first
+    .limit(5)
+    .populate({
+      path: "productId",
+      select: "title", // only fetch the title
+      model: "Product",
+    });
+
+  return recentComments.map((comment) => {
+    const product = comment.productId as { _id: string; title: string };
+
+    return {
+      _id: comment._id,
+      text: comment.text,
+      userName: comment.userName,
+      createdAt: comment.createdAt,
+      product: {
+        id: product._id,
+        title: product.title,
+      },
+    };
+  });
+})
+
+
+
 
 
   });
+
+
+
+
 
 export type AppRouter = typeof appRouter;

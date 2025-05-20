@@ -1,102 +1,81 @@
+"use client";
+
 import React from "react";
 import { Card, CardContent } from "../ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { trpc } from "@/app/_trpc/client";
+// Adjust the import path based on your project structure
+import { Loader2 } from "lucide-react";
 
 const HomeTrust = () => {
+  const { data: comments, isLoading } = trpc.getRecentComments.useQuery();
+
+
   return (
-    <section className="py-12 md:py-16 lg:py-20 bg-muted ">
+    <section className="py-12 md:py-16 lg:py-20 bg-muted">
       <div className="container px-4 md:px-6 items-center justify-center mx-auto">
-        <div className="grid md:grid-cols-2 gap-8 ">
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Why Choose Us */}
           <div>
             <h2 className="text-primary text-2xl font-bold mb-4">
               Why Choose Us?
             </h2>
             <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <AwardIcon className="w-8 h-8 text-primary" />
-                <div>
-                  <h3 className="text-primary text-lg font-semibold">
-                    Award-Winning
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Our products have been recognized for their excellence in
-                    design and innovation.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <BadgeIcon className="w-8 h-8 text-primary" />
-                <div>
-                  <h3 className="text-primary text-lg font-semibold">
-                    Certified Quality
-                  </h3>
-                  <p className="text-muted-foreground">
-                    All our products are rigorously tested and certified to meet
-                    the highest quality standards.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <ThumbsUpIcon className="w-8 h-8 text-primary" />
-                <div>
-                  <h3 className="text-primary text-lg font-semibold">
-                    Trusted by Customers
-                  </h3>
-                  <p className="text-muted-foreground">
-                    Our customers love our products and consistently provide
-                    positive feedback and reviews.
-                  </p>
-                </div>
-              </div>
+              <Feature
+                icon={<AwardIcon className="w-8 h-8 text-primary" />}
+                title="Award-Winning"
+                description="Our products have been recognized for their excellence in design and innovation."
+              />
+              <Feature
+                icon={<BadgeIcon className="w-8 h-8 text-primary" />}
+                title="Certified Quality"
+                description="All our products are rigorously tested and certified to meet the highest quality standards."
+              />
+              <Feature
+                icon={<ThumbsUpIcon className="w-8 h-8 text-primary" />}
+                title="Trusted by Customers"
+                description="Our customers love our products and consistently provide positive feedback and reviews."
+              />
             </div>
           </div>
+
+          {/* Customer Comments */}
           <div>
             <h2 className="text-primary text-2xl font-bold mb-4">
               What Our Customers Say
             </h2>
             <div className="space-y-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    <Avatar>
-                      <AvatarImage src="/placeholder-user.jpg" />
-                      <AvatarFallback>JD</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="text-lg font-semibold">John Doe</h3>
-                      <p className="text-muted-foreground">
-                        Satisfied Customer
-                      </p>
-                    </div>
-                  </div>
-                  <p className="mt-4 text-muted-foreground">
-                    Im absolutely thrilled with my purchase from Digital\n
-                    Store. The quality is outstanding, and the customer\n
-                    service is top-notch. Highly recommended!
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    <Avatar>
-                      <AvatarImage src="/placeholder-user.jpg" />
-                      <AvatarFallback>JA</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="text-lg font-semibold">Jane Appleseed</h3>
-                      <p className="text-muted-foreground">
-                        Satisfied Customer
-                      </p>
-                    </div>
-                  </div>
-                  <p className="mt-4 text-muted-foreground">
-                    Im so impressed with the selection and value at\n Digi
-                    Market. The products are fantastic, and the\n shopping
-                    experience was a breeze. Highly recommended!
-                  </p>
-                </CardContent>
-              </Card>
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              ) : comments?.length ? (
+                comments.map((comment) => (
+                  <Card key={comment._id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-4">
+                        <Avatar>
+                          <AvatarImage src="/placeholder-user.jpg" />
+                          <AvatarFallback>
+                            {comment.userName.slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="text-lg font-semibold">
+                            {comment.userName}
+                          </h3>
+                          <p className="text-muted-foreground">
+                            On: {comment.product.title}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="mt-4 text-muted-foreground">{comment.text}</p>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <p className="text-muted-foreground">No comments yet.</p>
+              )}
             </div>
           </div>
         </div>
@@ -106,6 +85,25 @@ const HomeTrust = () => {
 };
 
 export default HomeTrust;
+
+const Feature = ({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) => (
+  <div className="flex items-start gap-4">
+    {icon}
+    <div>
+      <h3 className="text-primary text-lg font-semibold">{title}</h3>
+      <p className="text-muted-foreground">{description}</p>
+    </div>
+  </div>
+);
+
 
 function AwardIcon(props: { className: string }) {
   return (
