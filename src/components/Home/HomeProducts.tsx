@@ -26,14 +26,14 @@ const HomeProducts = () => {
                   </p>
                 </div>
                 <Link
-                  href={`/category/${cat.id}`}
+                  href={`/category/${cat._id}`}
                   className="mt-4 md:mt-0"
                   prefetch={false}
                 >
                   <Button variant="outline">View More</Button>
                 </Link>
               </div>
-              <HomeProductsCards cat={cat.id} />
+              <HomeProductsCards cat={cat._id} />
             </div>
           ))
       ) : isLoading ? (
