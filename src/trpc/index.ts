@@ -270,7 +270,7 @@ getCategories: publicProcedure.query(async () => {
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      const deleted = await Sliders.findByIdAndDelete(input._id);
+      const deleted = await Sliders.findByIdAndDelete(id);
       if (!deleted) throw new TRPCError({ code: "BAD_REQUEST" });
 
       return { success: true };

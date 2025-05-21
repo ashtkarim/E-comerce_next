@@ -2,36 +2,47 @@ version: '3.8'
 
 services:
   mongodb:
-    image: mongo
+    image: mongo:latest
+    container_name: mongodb
     restart: always
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    # Optional: specify environment or init settings if needed
 
   mysql:
-    image: mysql
+    image: mysql:8.0
+    container_name: mysql
     restart: always
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
-    command: --skip-password --default-authentication-plugin=mysql_native_password
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: app_db
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_pass
+    command: --default-authentication-plugin=mysql_native_password
     volumes:
       - mysql_data:/var/lib/mysql
 
   neo4j:
-    image: neo4j
+    image: neo4j:5
+    container_name: neo4j
     restart: always
     ports:
-      - "7474:7474"
-      - "7687:7687"
-    volumes:
-      - neo4j_data:/data
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
     environment:
       NEO4J_AUTH: none
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/var/lib/neo4j/import
 
 volumes:
   mongodb_data:
   mysql_data:
   neo4j_data:
+  neo4j_logs:
+  neo4j_import:
